@@ -1,10 +1,10 @@
 /*******************************************************************************
  * ESP32 ACTIVE FIN STABILIZATION SYSTEM
- * MPU-6250 + 4x Servo Motors (Elegoo SG90)
+ * MPU-6050 + 4x Servo Motors (Elegoo SG90)
  * 
  * HARDWARE CONNECTIONS (connect tomorrow):
  * ----------------------------------------
- * MPU-6250:
+ * MPU-6050:
  *   VCC  -> ESP32 3.3V
  *   GND  -> ESP32 GND
  *   SDA  -> ESP32 GPIO 21
@@ -17,7 +17,7 @@
  *   West Fin:   Signal -> GPIO 32,  VCC -> 5V,  GND -> GND
  * 
  * DEBUG MODE: Runs without hardware, prints simulated data to Serial Monitor
- * HARDWARE MODE: Automatically detects MPU-6250 and servos when connected
+ * HARDWARE MODE: Automatically detects MPU-6050 and servos when connected
  * 
  * Author: Created for cardboard testing
  * Date: December 2024
@@ -97,7 +97,7 @@ void setup() {
   Serial.println();
   Serial.println("========================================================");
   Serial.println("  ESP32 ACTIVE FIN STABILIZATION SYSTEM");
-  Serial.println("  MPU-6250 + 4x Servo Motors");
+  Serial.println("  MPU-6050 + 4x Servo Motors");
   Serial.println("========================================================");
   Serial.println();
   
@@ -167,8 +167,8 @@ void initializeHardware() {
   delay(100);
   Serial.println("OK");
   
-  // Initialize MPU-6250 (uses same library as MPU-6050)
-  Serial.print("Initializing MPU-6250 sensor... ");
+  // Initialize MPU-6050 (uses same library as MPU-6050)
+  Serial.print("Initializing MPU-6050 sensor... ");
   mpu.initialize();
   delay(100);
   
@@ -181,12 +181,12 @@ void initializeHardware() {
     Serial.println("Calibrating in 3 seconds...");
     delay(3000);
     
-    Serial.print("Calibrating MPU-6250... ");
+    Serial.print("Calibrating MPU-6050... ");
     calibrateMPU();
     Serial.println("DONE");
   } else {
     Serial.println("FAILED");
-    Serial.println("WARNING: MPU-6250 not detected. Check wiring:");
+    Serial.println("WARNING: MPU-6050 not detected. Check wiring:");
     Serial.println("  VCC -> 3.3V");
     Serial.println("  GND -> GND");
     Serial.println("  SDA -> GPIO 21");
