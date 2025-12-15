@@ -1,26 +1,17 @@
 /*******************************************************************************
- * ESP32 ACTIVE FIN STABILIZATION SYSTEM
- * MPU-6050 + 4x Servo Motors (Elegoo SG90)
- * 
- * HARDWARE CONNECTIONS (connect tomorrow):
- * ----------------------------------------
- * MPU-6050:
- *   VCC  -> ESP32 3.3V
- *   GND  -> ESP32 GND
- *   SDA  -> ESP32 GPIO 21
- *   SCL  -> ESP32 GPIO 22
- * 
- * Servo Motors (SG90):
- *   North Fin:  Signal -> GPIO 25,  VCC -> 5V,  GND -> GND
- *   East Fin:   Signal -> GPIO 26,  VCC -> 5V,  GND -> GND
- *   South Fin:  Signal -> GPIO 27,  VCC -> 5V,  GND -> GND
- *   West Fin:   Signal -> GPIO 32,  VCC -> 5V,  GND -> GND
- * 
- * DEBUG MODE: Runs without hardware, prints simulated data to Serial Monitor
- * HARDWARE MODE: Automatically detects MPU-6050 and servos when connected
- * 
- * Author: Created for cardboard testing
- * Date: December 2024
+ * FIN STABILIZATION 
+ * MPU-6050 + 4x Servo Motors 
+ * MPU-6050
+ * ESP32
+ * Power module
+ * 9v Adapter 
+ * for now below 
+ * Servo Motors :
+ *   North Fin-> GPIO 25
+ *   East Fin-> GPIO 26
+ *   South Fin-> GPIO 27  
+ *   West Fin-> GPIO 32
+ 
  ******************************************************************************/
 
 #include <Wire.h>
@@ -50,7 +41,7 @@ const int SERVO_MAX = 135;
 // Control Parameters
 const float PITCH_GAIN = 1.0;
 const float ROLL_GAIN = 1.0;
-const float DEADZONE = 2.0;
+const float DEADZONE = 5.0;
 const float FILTER_ALPHA = 0.2;
 
 // Global Variables
@@ -73,7 +64,7 @@ const unsigned long UPDATE_INTERVAL = 50;
 unsigned long lastDisplay = 0;
 const unsigned long DISPLAY_INTERVAL = 1000;
 
-// Hardware objects (only if not in debug mode)
+// DEBUG stuff
 #ifndef DEBUG_MODE_NO_HARDWARE
   MPU6050 mpu;
   Servo finNorth;
@@ -85,7 +76,7 @@ const unsigned long DISPLAY_INTERVAL = 1000;
   int16_t gx_offset = 0, gy_offset = 0, gz_offset = 0;
 #endif
 
-// Debug simulation variables
+// DEBUG variables
 #ifdef DEBUG_MODE_NO_HARDWARE
   float simTime = 0.0;
 #endif
@@ -96,18 +87,15 @@ void setup() {
   
   Serial.println();
   Serial.println("========================================================");
-  Serial.println("  ESP32 ACTIVE FIN STABILIZATION SYSTEM");
-  Serial.println("  MPU-6050 + 4x Servo Motors");
+  Serial.println(" FIN STABILIZATION ");
   Serial.println("========================================================");
   Serial.println();
   
+  //DEBUG
   #ifdef DEBUG_MODE_NO_HARDWARE
-    Serial.println("MODE: DEBUG - No Hardware Required");
+    Serial.println("MODE: DEBUG");
     Serial.println("This code will simulate sensor data for testing");
-    Serial.println("Comment out #define DEBUG_MODE_NO_HARDWARE when hardware is connected");
     Serial.println();
-    Serial.println("Simulated sensor readings will appear below.");
-    Serial.println("Connect hardware tomorrow and re-upload to use real sensors.");
     Serial.println();
     mpuConnected = false;
     servosConnected = false;
@@ -118,7 +106,7 @@ void setup() {
   #endif
   
   Serial.println("========================================================");
-  Serial.println("System Ready - Starting stabilization loop");
+  Serial.println("System Ready Starting stabilization");
   Serial.println("========================================================");
   Serial.println();
   
@@ -157,17 +145,17 @@ void loop() {
 
 #ifndef DEBUG_MODE_NO_HARDWARE
 void initializeHardware() {
-  Serial.println("--- HARDWARE INITIALIZATION ---");
+  Serial.println(" HARDWARE INITIALIZATION");
   Serial.println();
   
   // Initialize I2C
-  Serial.print("Initializing I2C bus (SDA=21, SCL=22)... ");
+  Serial.print("Initializing I2C bus");
   Wire.begin(MPU_SDA_PIN, MPU_SCL_PIN);
   Wire.setClock(400000);
   delay(100);
   Serial.println("OK");
   
-  // Initialize MPU-6050 (uses same library as MPU-6050)
+  // Initialize MPU-6050 
   Serial.print("Initializing MPU-6050 sensor... ");
   mpu.initialize();
   delay(100);
@@ -177,7 +165,7 @@ void initializeHardware() {
     mpuConnected = true;
     
     Serial.println();
-    Serial.println("IMPORTANT: Keep sensor FLAT and STILL for calibration!");
+    Serial.println("Keep sensor FLAT and STILL for calibration!");
     Serial.println("Calibrating in 3 seconds...");
     delay(3000);
     
@@ -186,11 +174,7 @@ void initializeHardware() {
     Serial.println("DONE");
   } else {
     Serial.println("FAILED");
-    Serial.println("WARNING: MPU-6050 not detected. Check wiring:");
-    Serial.println("  VCC -> 3.3V");
-    Serial.println("  GND -> GND");
-    Serial.println("  SDA -> GPIO 21");
-    Serial.println("  SCL -> GPIO 22");
+    Serial.println("WARNING: MPU-6050 not detected.");
     mpuConnected = false;
   }
   
@@ -231,6 +215,7 @@ void initializeHardware() {
 }
 
 void calibrateMPU() {
+  //Intializingh
   long ax_sum = 0, ay_sum = 0, az_sum = 0;
   long gx_sum = 0, gy_sum = 0, gz_sum = 0;
   int samples = 200;
@@ -266,6 +251,7 @@ void calibrateMPU() {
   Serial.print(", GZ: "); Serial.println(gz_offset);
 }
 
+// EVery single fin/servo testing 
 void testServos() {
   Serial.println("  Testing North fin...");
   finNorth.write(SERVO_MAX);
@@ -341,7 +327,7 @@ void moveServos() {
 void updateSimulatedData() {
   simTime += 0.05;
   
-  // Simulate tilting motion
+  // Simulate teh tilting motion
   pitch = 15.0 * sin(simTime * 0.5);
   roll = 10.0 * cos(simTime * 0.7);
   
@@ -350,6 +336,7 @@ void updateSimulatedData() {
 }
 #endif
 
+// calculating the deadzones and fixing them back
 void calculateServoPositions() {
   float corrected_pitch = (abs(pitch) < DEADZONE) ? 0 : pitch;
   float corrected_roll = (abs(roll) < DEADZONE) ? 0 : roll;
@@ -365,12 +352,13 @@ void calculateServoPositions() {
   servoWest = constrain(westAngle, SERVO_MIN, SERVO_MAX);
 }
 
+//Just print statemnets for serial monitor 
 void displayTelemetry() {
   Serial.println("--- TELEMETRY UPDATE ---");
   Serial.println();
   
   #ifdef DEBUG_MODE_NO_HARDWARE
-    Serial.print("Mode: SIMULATED DATA (Hardware not connected)");
+    Serial.print("Mode: SIMULATED DATA (Hardware NOT connected)");
     Serial.print(" | Time: ");
     Serial.print(simTime, 1);
     Serial.println("s");
@@ -414,7 +402,7 @@ void displayTelemetry() {
   Serial.println("SERVO POSITIONS:");
   Serial.print("  North: ");
   Serial.print(servoNorth);
-  Serial.print(" deg");
+  Serial.print(" deg");    // will Replace with teh HEX VALUE of degree later 
   Serial.print("  |  East: ");
   Serial.print(servoEast);
   Serial.print(" deg");
@@ -431,6 +419,7 @@ void displayTelemetry() {
   int pitchCorrection = abs(servoNorth - SERVO_NEUTRAL);
   int rollCorrection = abs(servoEast - SERVO_NEUTRAL);
   
+  // REPLACE WITH MACROS LATER MAYbe 
   Serial.print("  Pitch correction: ");
   Serial.print(pitchCorrection);
   Serial.print(" deg");
@@ -457,11 +446,11 @@ void displayTelemetry() {
   
   Serial.print("STATUS: ");
   if (abs(pitch) < 5 && abs(roll) < 5) {
-    Serial.println("STABLE - Minimal correction needed");
+    Serial.println("STABLE, Minimal correction needed");
   } else if (abs(pitch) > 20 || abs(roll) > 20) {
-    Serial.println("HIGH TILT - Active correction in progress");
+    Serial.println("HIGH TILT, Active correction in progress");
   } else {
-    Serial.println("CORRECTING - Fins adjusting");
+    Serial.println("CORRECTING, Fins adjusting");
   }
   
   Serial.println();
@@ -469,14 +458,14 @@ void displayTelemetry() {
   Serial.println();
 }
 
+
+//fpr now must work like below
 void printStartupInstructions() {
   Serial.println();
   Serial.println("TESTING INSTRUCTIONS:");
-  Serial.println("1. Tilt board FORWARD  -> North fin deflects to push back");
-  Serial.println("2. Tilt board BACKWARD -> South fin deflects to push back");
-  Serial.println("3. Tilt board LEFT     -> East fin deflects to push back");
-  Serial.println("4. Tilt board RIGHT    -> West fin deflects to push back");
-  Serial.println();
-  Serial.println("If fins move OPPOSITE to tilt direction = System working correctly");
+  Serial.println("1. TILT FORWARD   -> North fin deflects to push back");
+  Serial.println("2. TILT BACKWARD -> South fin deflects to push back");
+  Serial.println("3. TILT LEFT     -> East fin deflects to push back");
+  Serial.println("4. TILT RIGHT    -> West fin deflects to push back");
   Serial.println();
 }
