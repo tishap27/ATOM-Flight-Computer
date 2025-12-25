@@ -1,6 +1,6 @@
 /*******************************************************************************
  * MLX90640 THERMAL CAMERA TEST
- * Project ATOM - Autonomous Tracking Ordnance Module
+ * Project ATOM 
  * 
  * CONNECTIONS:
  * MLX90640 -> ESP32
@@ -9,11 +9,8 @@
  * SDA      -> GPIO 21
  * SCL      -> GPIO 22
  * 
- * Note: MLX90640 requires I2C pullup resistors (4.7kΩ recommended)
+ * Note:  I2C pullup resistors (4.7kohm)
  ******************************************************************************/
-
-
- // Untetsted code 
 
 #include <Wire.h>
 
@@ -49,7 +46,7 @@ bool targetDetected = false;
 bool cameraConnected = false;
 
 unsigned long lastFrameTime = 0;
-const unsigned long FRAME_INTERVAL = 100; // 10 FPS
+const unsigned long FRAME_INTERVAL = 500; // 2 FPS (slower for readability)
 
 #ifndef DEBUG_MODE_NO_HARDWARE
   Adafruit_MLX90640 mlx;
@@ -115,12 +112,6 @@ void loop() {
 
 void printConnectionDiagram() {
   Serial.println("WIRING CONNECTIONS:");
-  Serial.println("  MLX90640 VIN  -> ESP32 3.3V");
-  Serial.println("  MLX90640 GND  -> ESP32 GND");
-  Serial.println("  MLX90640 SDA  -> ESP32 GPIO 21");
-  Serial.println("  MLX90640 SCL  -> ESP32 GPIO 22");
-  Serial.println();
-  Serial.println("IMPORTANT: Use 4.7kΩ pullup resistors on SDA and SCL!");
   Serial.println();
 }
 
@@ -155,7 +146,7 @@ void initializeCamera() {
   } else {
     Serial.println("FAILED");
     Serial.println("WARNING: MLX90640 not detected at address 0x33");
-    Serial.println("Check wiring and I2C pullup resistors!");
+    Serial.println("Check wiring ");
     cameraConnected = false;
   }
   
@@ -261,46 +252,30 @@ void displayTelemetry() {
   #endif
   
   Serial.println();
-  
   Serial.println("THERMAL DATA:");
-  Serial.print("  Ambient Temp: ");
+  Serial.print("  Ambient: ");
   Serial.print(ambientTemp, 1);
-  Serial.println(" °C");
-  
-  Serial.print("  Min Temp: ");
+  Serial.print(" °C | Min: ");
   Serial.print(minTemp, 1);
-  Serial.println(" °C");
-  
-  Serial.print("  Max Temp: ");
+  Serial.print(" °C | Max: ");
   Serial.print(maxTemp, 1);
-  Serial.println(" °C");
-  
-  Serial.print("  Temperature Range: ");
+  Serial.print(" °C | Range: ");
   Serial.print(maxTemp - minTemp, 1);
   Serial.println(" °C");
   
   Serial.println();
-  
-  Serial.println("TARGET DETECTION:");
-  Serial.print("  Status: ");
+  Serial.println("TARGET:");
   
   if (targetDetected) {
-    Serial.println("TARGET LOCKED");
-    
-    Serial.print("  Target Position: X=");
+    Serial.print("  ★ LOCKED at [");
     Serial.print(targetX);
-    Serial.print(" (");
-    Serial.print((float)targetX / FRAME_WIDTH * 100, 0);
-    Serial.print("%), Y=");
+    Serial.print(",");
     Serial.print(targetY);
-    Serial.print(" (");
-    Serial.print((float)targetY / FRAME_HEIGHT * 100, 0);
-    Serial.println("%)");
+    Serial.print("] ");
     
-    Serial.print("  Target Temp: ");
     int targetIndex = targetY * FRAME_WIDTH + targetX;
     Serial.print(thermalFrame[targetIndex], 1);
-    Serial.println(" °C");
+    Serial.print("°C");
     
     // Calculate offset from center
     int centerX = FRAME_WIDTH / 2;
@@ -308,57 +283,72 @@ void displayTelemetry() {
     int offsetX = targetX - centerX;
     int offsetY = targetY - centerY;
     
-    Serial.print("  Offset from Center: X=");
+    Serial.print(" | Offset: X");
+    if (offsetX >= 0) Serial.print("+");
     Serial.print(offsetX);
-    Serial.print(" pixels, Y=");
+    Serial.print(" Y");
+    if (offsetY >= 0) Serial.print("+");
     Serial.print(offsetY);
-    Serial.println(" pixels");
     
-    // Direction indicators
-    Serial.print("  Direction: ");
-    if (offsetX > 2) Serial.print("RIGHT ");
-    else if (offsetX < -2) Serial.print("LEFT ");
-    
-    if (offsetY > 2) Serial.print("DOWN ");
-    else if (offsetY < -2) Serial.print("UP ");
+    Serial.print(" | ");
     
     if (abs(offsetX) <= 2 && abs(offsetY) <= 2) {
-      Serial.print("CENTERED");
+      Serial.println("CENTERED");
+    } else {
+      if (offsetX > 2) Serial.print("RIGHT ");
+      else if (offsetX < -2) Serial.print("LEFT ");
+      if (offsetY > 2) Serial.print("DOWN ");
+      else if (offsetY < -2) Serial.print("UP ");
+      Serial.println();
     }
-    Serial.println();
     
   } else {
-    Serial.println("NO TARGET");
-    Serial.println("  Searching for heat signature...");
+    Serial.println("  NO TARGET - Searching...");
   }
   
   Serial.println();
   
-  // Simple ASCII visualization
-  Serial.println("THERMAL VIEW (CENTER 8x6 region):");
-  Serial.println("  ┌────────┐");
+  // Full frame ASCII visualization (scaled down)
+  Serial.println();
+  Serial.println("THERMAL VIEW (Full 32x24 frame, scaled):");
+  Serial.println("  ┌────────────────────────────────┐");
   
-  for (int y = 9; y < 15; y++) {
+  // Show every 3rd row and every 2nd column for compact view
+  for (int y = 0; y < FRAME_HEIGHT; y += 3) {
     Serial.print("  │");
-    for (int x = 12; x < 20; x++) {
+    for (int x = 0; x < FRAME_WIDTH; x += 2) {
       int index = y * FRAME_WIDTH + x;
       float temp = thermalFrame[index];
       
-      if (x == targetX && y == targetY && targetDetected) {
+      // Check if target is in this or adjacent cell
+      bool isTarget = false;
+      if (targetDetected) {
+        for (int dy = 0; dy < 3 && y + dy < FRAME_HEIGHT; dy++) {
+          for (int dx = 0; dx < 2 && x + dx < FRAME_WIDTH; dx++) {
+            if (x + dx == targetX && y + dy == targetY) {
+              isTarget = true;
+            }
+          }
+        }
+      }
+      
+      if (isTarget) {
         Serial.print("XX");
-      } else if (temp > ambientTemp + 5) {
+      } else if (temp > ambientTemp + 8) {
         Serial.print("##");
-      } else if (temp > ambientTemp + 2) {
+      } else if (temp > ambientTemp + 4) {
         Serial.print("::");
-      } else {
+      } else if (temp > ambientTemp + 1) {
         Serial.print("..");
+      } else {
+        Serial.print("  ");
       }
     }
     Serial.println("│");
   }
   
-  Serial.println("  └────────┘");
-  Serial.println("  Legend: XX=Target, ##=Hot, ::=Warm, ..=Cool");
+  Serial.println("  └────────────────────────────────┘");
+  Serial.println("  Legend: XX=Target, ##=Very Hot, ::=Hot, ..=Warm, (space)=Cool");
   
   Serial.println();
   Serial.println("========================================================");
