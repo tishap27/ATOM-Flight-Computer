@@ -13,6 +13,7 @@
  *   West Fin-> GPIO 32
  
  ******************************************************************************/
+// Library for arduino 
 #include <Arduino.h>
 
 // Function declarations
@@ -26,10 +27,11 @@ void calculateServoPositions();
 void displayTelemetry();
 void printStartupInstructions();
 
+// library for the esp and serial monitor communication
 #include <Wire.h>
 
 // Comment out next line when hardware is connected
-//#define DEBUG_MODE_NO_HARDWARE
+#define DEBUG_MODE_NO_HARDWARE
 
  #ifndef DEBUG_MODE_NO_HARDWARE
   #include <MPU6050.h>
@@ -67,6 +69,8 @@ int servoEast = SERVO_NEUTRAL;
 int servoSouth = SERVO_NEUTRAL;
 int servoWest = SERVO_NEUTRAL;
 
+
+// Intializing the variales Mpu 
 bool mpuConnected = false;
 bool servosConnected = false;
 
