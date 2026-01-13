@@ -40,7 +40,7 @@
 #include <Wire.h>
 
 // Comment out next line when hardware is connected
-#define DEBUG_MODE_NO_HARDWARE
+//#define DEBUG_MODE_NO_HARDWARE
 
 #ifndef DEBUG_MODE_NO_HARDWARE
   #include <MPU6050.h>
@@ -73,16 +73,16 @@ const int SERVO_MAX = 135;
 // ============================================================================
 
 // Stabilization gains (for maintaining level flight)
-const float PITCH_STAB_GAIN = 1.0;
-const float ROLL_STAB_GAIN = 1.0;
+const float PITCH_STAB_GAIN = 3.0;
+const float ROLL_STAB_GAIN = 3.0;
 
 // Tracking gains (for following target)
 const float TRACKING_GAIN_X = 2.0;  // Horizontal tracking sensitivity
 const float TRACKING_GAIN_Y = 2.0;  // Vertical tracking sensitivity
 
 // Control mode weights (0.0 to 1.0)
-float stabilizationWeight = 0.3;  // How much to stabilize
-float trackingWeight = 0.7;       // How much to track target
+float stabilizationWeight = 0.4;  // How much to stabilize
+float trackingWeight = 0.6;       // How much to track target
 
 const float DEADZONE = 5.0;
 const float FILTER_ALPHA = 0.2;

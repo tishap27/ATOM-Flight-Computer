@@ -15,7 +15,7 @@
 #include <Wire.h>
 
 // Comment out next line when hardware is connected
-#define DEBUG_MODE_NO_HARDWARE
+//#define DEBUG_MODE_NO_HARDWARE
 
 #ifndef DEBUG_MODE_NO_HARDWARE
   #include <Adafruit_MLX90640.h>
