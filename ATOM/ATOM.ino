@@ -29,9 +29,9 @@ const int SERVO_SOUTH = 27;
 const int SERVO_WEST = 32;
 
 // Servo limits
-const int SERVO_CENTER = 90;
-const int SERVO_MIN = 45;
-const int SERVO_MAX = 135;
+const int SERVO_CENTER = 45 ; //90;  
+const int SERVO_MIN = 0; //45;
+const int SERVO_MAX = 65; //135;
 
 // Thermal camera settings
 const int FRAME_WIDTH = 32;

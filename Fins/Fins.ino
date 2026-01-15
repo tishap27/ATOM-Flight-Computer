@@ -17,7 +17,7 @@
 #include <Wire.h>
 
 // Comment out next line when hardware is connected
-//#define DEBUG_MODE_NO_HARDWARE
+#define DEBUG_MODE_NO_HARDWARE
 
  #ifndef DEBUG_MODE_NO_HARDWARE
   #include <MPU6050.h>
@@ -243,7 +243,7 @@ void calibrateMPU() {
   
   Serial.println();
   Serial.print("  Calibration offsets - ");
-  Serial.print("AX: "); Serial.print(ax_offset);
+  Serial.print("AX: "); Serial.pri  #include <MPU6050.h>nt(ax_offset);
   Serial.print(", AY: "); Serial.print(ay_offset);
   Serial.print(", AZ: "); Serial.print(az_offset);
   Serial.print(", GX: "); Serial.print(gx_offset);
