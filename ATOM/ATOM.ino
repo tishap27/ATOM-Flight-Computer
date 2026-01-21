@@ -10,6 +10,7 @@
  * Connections:
  * MLX90640: VIN->3.3V, GND->GND, SDA->GPIO21, SCL->GPIO22
  * Servos: North->GPIO25, East->GPIO26, South->GPIO27, West->GPIO32
+ * to bring back the fins 
  * 
  ******************************************************************************/
 
@@ -48,6 +49,12 @@ int targetX = -1;
 int targetY = -1;
 bool targetLocked = false;
 bool cameraReady = false;
+
+int lastTargetX = -1;  
+int lastTargetY = -1;  
+//BACK TO original
+unsigned long lastTargetMove = 0;
+const unsigned long TARGET_TIMEOUT = 5000; // 5 seconds
 
 Adafruit_MLX90640 mlx;
 Servo finNorth, finEast, finSouth, finWest;
@@ -136,10 +143,22 @@ void detectTarget() {
     targetLocked = true;
     targetX = maxIndex % FRAME_WIDTH;
     targetY = maxIndex / FRAME_WIDTH;
+    
+    // Check if target has moved
+    if (targetX != lastTargetX || targetY != lastTargetY) {
+      lastTargetMove = millis();
+      lastTargetX = targetX;
+      lastTargetY = targetY;
+    }
   }
 }
-
 void updateServos() {
+
+    // Check if target hasn't moved for too long
+  if (targetLocked && (millis() - lastTargetMove > TARGET_TIMEOUT)) {
+    targetLocked = false; // Treat as no target
+  }
+  
   if (!targetLocked) {
     // No target - center all fins
     finNorth.write(SERVO_CENTER);
