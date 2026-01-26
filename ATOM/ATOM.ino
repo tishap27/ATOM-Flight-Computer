@@ -31,8 +31,8 @@ const int SERVO_WEST = 32;
 
 // Servo limits
 const int SERVO_CENTER = 45 ; //90;  
-const int SERVO_MIN = 0; //45;
-const int SERVO_MAX = 65; //135;
+const int SERVO_MIN = 40; //45;
+const int SERVO_MAX = 50; //135;
 
 // Thermal camera settings
 const int FRAME_WIDTH = 32;
@@ -42,6 +42,11 @@ const int TOTAL_PIXELS = 768;
 // Tracking parameters
 const float TRACKING_GAIN = 2.5;
 const float TEMP_THRESHOLD = 30.0;
+
+// Smoothing for stable tracking 
+float smoothTargetX = 16.0;  // Center of frame
+float smoothTargetY = 12.0;  // Center of frame
+const float SMOOTHING = 0.4;  // 0.2-0.6, lower = smoother but slower
 
 // Global variabless
 float thermalFrame[TOTAL_PIXELS];
@@ -54,13 +59,13 @@ int lastTargetX = -1;
 int lastTargetY = -1;  
 //BACK TO original
 unsigned long lastTargetMove = 0;
-const unsigned long TARGET_TIMEOUT = 5000; // 5 seconds
+const unsigned long TARGET_TIMEOUT = 500; // 0.5 seconds previus was 5000- 5 seconds
 
 Adafruit_MLX90640 mlx;
 Servo finNorth, finEast, finSouth, finWest;
 
 unsigned long lastUpdate = 0;
-const unsigned long UPDATE_RATE = 100;
+const unsigned long UPDATE_RATE = 10;  // 100 Hz - UPDATED FOR SPEED//previous 100;
 
 void setup() {
   Serial.begin(115200);
@@ -144,6 +149,11 @@ void detectTarget() {
     targetX = maxIndex % FRAME_WIDTH;
     targetY = maxIndex / FRAME_WIDTH;
     
+    // Apply smoothing
+    smoothTargetX = smoothTargetX * (1.0 - SMOOTHING) + targetX * SMOOTHING;
+    smoothTargetY = smoothTargetY * (1.0 - SMOOTHING) + targetY * SMOOTHING;
+
+    
     // Check if target has moved
     if (targetX != lastTargetX || targetY != lastTargetY) {
       lastTargetMove = millis();
@@ -172,8 +182,12 @@ void updateServos() {
   int centerX = FRAME_WIDTH / 2;
   int centerY = FRAME_HEIGHT / 2;
   
-  float errorX = (targetX - centerX) / (float)centerX;
-  float errorY = (targetY - centerY) / (float)centerY;
+  //float errorX = (targetX - centerX) / (float)centerX;
+  //float errorY = (targetY - centerY) / (float)centerY;
+  
+  //Now Calculating the tracking error - USING SMOOTHED VALUES
+  float errorX = (smoothTargetX - centerX) / (float)centerX;
+  float errorY = (smoothTargetY - centerY) / (float)centerY;
   
   // Calculating servo positions
   // Target right -> deflect east fin
