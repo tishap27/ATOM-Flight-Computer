@@ -31,8 +31,8 @@ const int SERVO_WEST = 32;
 
 // Servo limits
 const int SERVO_CENTER = 45 ; //90;  
-const int SERVO_MIN = 40; //45;
-const int SERVO_MAX = 50; //135;
+const int SERVO_MIN = 0; //45;
+const int SERVO_MAX = 65; //135;
 
 // Thermal camera settings
 const int FRAME_WIDTH = 32;
@@ -46,7 +46,7 @@ const float TEMP_THRESHOLD = 30.0;
 // Smoothing for stable tracking 
 float smoothTargetX = 16.0;  // Center of frame
 float smoothTargetY = 12.0;  // Center of frame
-const float SMOOTHING = 0.4;  // 0.2-0.6, lower = smoother but slower
+const float SMOOTHING = 0.05  ;  // 0.2-0.6, lower = smoother but slower
 
 // Global variabless
 float thermalFrame[TOTAL_PIXELS];
@@ -59,7 +59,7 @@ int lastTargetX = -1;
 int lastTargetY = -1;  
 //BACK TO original
 unsigned long lastTargetMove = 0;
-const unsigned long TARGET_TIMEOUT = 500; // 0.5 seconds previus was 5000- 5 seconds
+const unsigned long TARGET_TIMEOUT = 1500; // 0.5 seconds previus was 5000- 5 seconds
 
 Adafruit_MLX90640 mlx;
 Servo finNorth, finEast, finSouth, finWest;
@@ -84,7 +84,7 @@ void setup() {
     Serial.println("Thermal camera: OK");
     mlx.setMode(MLX90640_CHESS);
     mlx.setResolution(MLX90640_ADC_18BIT);
-    mlx.setRefreshRate(MLX90640_8_HZ);
+    mlx.setRefreshRate(MLX90640_16_HZ);
     cameraReady = true;
   } else {
     Serial.println("Thermal camera: FAILED");
