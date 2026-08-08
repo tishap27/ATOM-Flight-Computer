@@ -1,12 +1,15 @@
 # ATOM — Flight Computer
 
+V2.0
+Replacing the thermal cam with an IMU for tilt-based fin stabilization
+
 > Model rocketry flight computer with thermal tracking, active fin stabilization, and telemetry.
 
 ---
 
 ## Overview
 
-ATOM is an ESP32-based flight computer designed for model rockets. The thermal tracking module uses an MLX90640 infrared camera to detect and lock onto a heat source, then drives four servo-controlled fins to actively stabilize the rocket's trajectory.
+ATOM is an ESP32-based flight computer designed for model rockets. The thermal tracking module uses an MLX90640 infrared camera to detect and lock onto a heat source, then drives four servo-controlled fins to actively stabilize the rocket's trajectory. For version 2, the IMU module uses an MPU9250 to sense pitch and roll, then drives four servo-controlled fins.
 
 ---
 
@@ -15,11 +18,20 @@ ATOM is an ESP32-based flight computer designed for model rockets. The thermal t
 | Component | Details |
 |---|---|
 | Microcontroller | ESP32 |
+| IMU | MPU9250 (accelerometer + gyro) |
 | Thermal Camera | MLX90640 (32×24, up to 16 Hz) |
 | Fins | 4× Servo motors (N/E/S/W) |
 | Power | External supply for servos |
 
 **Wiring:**
+
+| MPU9250 | ESP32-S3 |
+|---|---|
+| VCC | 3.3V |
+| GND | GND |
+| SDA | GPIO 21 |
+| SCL | GPIO 22 |
+
 
 | MLX90640 | ESP32 |
 |---|---|
