@@ -53,6 +53,12 @@ const float ACCEL_SENSITIVITY = 16384.0;  // LSB per g
 
 bool imuReady = false;
 
+int lastNorthPos = SERVO_CENTER;
+int lastEastPos = SERVO_CENTER;
+int lastSouthPos = SERVO_CENTER;
+int lastWestPos = SERVO_CENTER;
+const int SERVO_DEADBAND = 2;
+
 Servo finNorth, finEast, finSouth, finWest;
 
 unsigned long lastUpdate = 0;
@@ -164,10 +170,10 @@ void updateServos() {
   eastPos  = constrain(eastPos, SERVO_MIN, SERVO_MAX);
   westPos  = constrain(westPos, SERVO_MIN, SERVO_MAX);
 
-  finNorth.write(northPos);
-  finEast.write(eastPos);
-  finSouth.write(southPos);
-  finWest.write(westPos);
+if (abs(northPos - lastNorthPos) >= SERVO_DEADBAND) { finNorth.write(northPos); lastNorthPos = northPos; }
+if (abs(eastPos - lastEastPos) >= SERVO_DEADBAND) { finEast.write(eastPos); lastEastPos = eastPos; }
+if (abs(southPos - lastSouthPos) >= SERVO_DEADBAND) { finSouth.write(southPos); lastSouthPos = southPos; }
+if (abs(westPos - lastWestPos) >= SERVO_DEADBAND) { finWest.write(westPos); lastWestPos = westPos; }
 }
 
 void printStatus() {
